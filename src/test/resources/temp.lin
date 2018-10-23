@@ -1,0 +1,4 @@
+    let x = 100;
+    print x;
+    fn inc (a : int) -> int { a + 1 };
+    print inc(x)
