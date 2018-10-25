@@ -76,32 +76,53 @@ object Translator {
     def translateExp(exp : Expression) {
 
       // FIXME Add code to translate an single expression here.
+      exp match {
 
-      case IdnExp (IdnUse (i)) =>
-        gen (IVar (i))
+        case PlusExp (left, right) =>
+          translateExp (left)
+          translateExp (right)
+          gen (IAdd ())
 
-      case IntExp (i) =>
-        gen (IInt (i))
+        case MinusExp (left, right) =>
+          translateExp (left)
+          translateExp (right)
+          gen (ISub ())
 
-      case PlusExp (left, right) =>
-        translateExp (left)
-        translateExp (right)
-        gen (IAdd ())
+        case StarExp (left, right) =>
+          translateExp (left)
+          translateExp (right)
+          gen (IMul ())
 
-      case MinusExp (left, right) =>
-        translateExp (left)
-        translateExp (right)
-        gen (ISub ())
+        case SlashExp (left, right) =>
+          translateExp (left)
+          translateExp (right)
+          gen (IDiv ())
 
-      case StarExp (left, right) =>
-        translateExp (left)
-        translateExp (right)
-        gen (IMul ())
+        case NegExp (exp) =>
+          gen (IInt (0))
+          exp match {
+            case IntExp (value) => gen (IInt (value))
+            case _ => ()
+          }
+          gen (ISub ())
 
-      case SlashExp (left, right) =>
-        translateExp (left)
-        translateExp (right)
-        gen (IDiv ())
+        case BoolExp (value) =>
+          gen (IBool (value))
+
+        case IdnExp (IdnUse (i)) =>
+          gen (IVar (i))
+
+        case IntExp (i) =>
+          gen (IInt (i))
+
+        // case IfExp (cond, left, right) =>
+        //   translateExp(left)
+        //   translateExp(right)
+        //
+
+        case _ => ()
+
+      }
 
     }
 
