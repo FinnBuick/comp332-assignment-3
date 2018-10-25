@@ -103,9 +103,6 @@ object Translator {
         translateExp (right)
         gen (IDiv ())
 
-      case NegExp (exp) =>
-        gen ()
-
     }
 
     // Call sequence translator
