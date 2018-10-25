@@ -77,6 +77,35 @@ object Translator {
 
       // FIXME Add code to translate an single expression here.
 
+      case IdnExp (IdnUse (i)) =>
+        gen (IVar (i))
+
+      case IntExp (i) =>
+        gen (IInt (i))
+
+      case PlusExp (left, right) =>
+        translateExp (left)
+        translateExp (right)
+        gen (IAdd ())
+
+      case MinusExp (left, right) =>
+        translateExp (left)
+        translateExp (right)
+        gen (ISub ())
+
+      case StarExp (left, right) =>
+        translateExp (left)
+        translateExp (right)
+        gen (IMul ())
+
+      case SlashExp (left, right) =>
+        translateExp (left)
+        translateExp (right)
+        gen (IDiv ())
+
+      case NegExp (exp) =>
+        gen ()
+
     }
 
     // Call sequence translator
