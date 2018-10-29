@@ -72,7 +72,13 @@ object Translator {
           gen (IClosure (None, List(idn), frame))
 
         case (FnDecl(name, args, optRet, body), :: rest) => // Must make 2 IClosures
+          val idn : String = name match {
+            case IdnDef(i) => i
+          }
 
+          val paramList : List[String] = 
+
+          gen (IClosure (Some(idn), )
 
         case (exp :: rest) =>
           translateExp(exp)
