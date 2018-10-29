@@ -64,7 +64,6 @@ object Translator {
 
         case (LetDecl(name, exp) :: rest) =>
           translateExp(exp)
-          translateSeq(rest)
           val frame = translateToFrame(rest)
           val idn : String = name match {
             case IdnDef(i) => i
@@ -72,7 +71,8 @@ object Translator {
 
           gen (IClosure (None, List(idn), frame))
 
-        
+        case (FnDecl(name, args, optRet, body), :: rest) => // Must make 2 IClosures
+
 
         case (exp :: rest) =>
           translateExp(exp)
