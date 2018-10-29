@@ -62,9 +62,22 @@ object Translator {
 
         // FIXME Add cases to translate binding constructs `let` and `fn` here
 
+        case (LetDecl(name, exp) :: rest) =>
+          translateExp(exp)
+          translateSeq(rest)
+          val frame = translateToFrame(rest)
+          val idn : String = name match {
+            case IdnDef(i) => i
+          }
+
+          gen (IClosure (None, List(idn), frame))
+
+        
+
         case (exp :: rest) =>
           translateExp(exp)
           translateSeq(rest)
+
         case _ => ()
       }
     }
@@ -119,6 +132,9 @@ object Translator {
         //   translateExp(left)
         //   translateExp(right)
         //
+
+        // case PrintExp(exp) =>
+        //   gen (IPrint (exp))
 
         case _ => ()
 
