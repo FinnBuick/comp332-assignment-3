@@ -26,6 +26,8 @@ import util.Messaging
 class SemanticTests extends ParseTests with Messaging {
 
   import LintillaTree._
+  import SECTree._
+  import Translator._
   import parsing.{Error, Failure, Success}
   import util.Source
   import util.StringSource
@@ -36,8 +38,8 @@ class SemanticTests extends ParseTests with Messaging {
   val parsers = new SyntaxAnalysis (positions)
 
   /**
-    * Parse test input from a source and, if the parse succeeds with no 
-    * input left, return the program tree. If the parse fails, 
+    * Parse test input from a source and, if the parse succeeds with no
+    * input left, return the program tree. If the parse fails,
     * fail the test.
     */
   def parseProgram(src : Source) : Program =
@@ -87,14 +89,15 @@ class SemanticTests extends ParseTests with Messaging {
     val prog = parseProgram(src)
     val tree = new SourceTree(prog)
     val analysis = new SemanticAnalysis(tree)
-    val translated = Translator.translate(prog)
 
     assert(analysis.envout(prog).length > 0, "scope error, global scope missing")
     assert(analysis.envout(prog).length === 1, "scope error, unclosed local scope")
     assert(analysis.errors.length === 0, "semantic analysis error(s)")
 
+    val translated = translate(prog)
     val emitter = new StringEmitter()
     val machine = new SECMachine(emitter)
+
     machine.run(translated)
 
     emitter.result() shouldBe expected
@@ -112,6 +115,36 @@ class SemanticTests extends ParseTests with Messaging {
     */
   def execTestFile(filename : String, expected : String) {
     execTest(FileSource(filename), expected)
+  }
+
+  /**
+    * Parse some test input, run the semantic analyser over the resulting
+    * tree and translate to SEC code.
+    */
+  def targetTest(src : Source, expected : Frame) {
+    val prog = parseProgram(src)
+    val tree = new SourceTree(prog)
+    val analysis = new SemanticAnalysis(tree)
+
+    assert(analysis.envout(prog).length > 0, "scope error, global scope missing")
+    assert(analysis.envout(prog).length === 1, "scope error, unclosed local scope")
+    assert(analysis.errors.length === 0, "semantic analysis error(s)")
+
+    translate(prog) shouldBe expected
+   }
+
+  /**
+    * Run target test with test input from a string and check the output.
+    */
+  def targetTestInline(src : String, expected : Frame) {
+    targetTest(StringSource(src), expected)
+  }
+
+  /**
+    * Run target test with test input from a file and check the output.
+    */
+  def targetTestFile(filename : String, expected : Frame) {
+    targetTest(FileSource(filename), expected)
   }
 
   /**
@@ -173,7 +206,7 @@ class SemanticTests extends ParseTests with Messaging {
   }
 
   /**
-    * Assert that a message is a type error with specified 
+    * Assert that a message is a type error with specified
     * inferred type.
     */
   def assertTypeErrorWithInferredType (

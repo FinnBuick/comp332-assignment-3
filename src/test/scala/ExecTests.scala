@@ -24,9 +24,17 @@ import org.scalatest.junit.JUnitRunner
 @RunWith(classOf[JUnitRunner])
 class ExecTests extends SemanticTests {
 
+  import SECTree._
+
   test("printing a constant integer gives the right output") {
     execTestInline("""
        |print(30)""".stripMargin, "30\n")
+  }
+
+  test("print constant integer gives the right translation") {
+    targetTestInline("""
+       |print(30)""".stripMargin,
+                     List(IInt(30), IPrint()))
   }
 
 }

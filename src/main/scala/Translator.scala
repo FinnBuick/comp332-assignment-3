@@ -62,23 +62,41 @@ object Translator {
 
         // FIXME Add cases to translate binding constructs `let` and `fn` here
 
-        case (LetDecl(name, exp) :: rest) =>
+        case (LetDecl (name, exp) :: rest) =>
           translateExp(exp)
-          val frame = translateToFrame(rest)
+          val frame = translateToFrame (rest)
           val idn : String = name match {
-            case IdnDef(i) => i
+            case IdnDef (i) => i
           }
+          gen (IClosure (None, List (idn), frame))
+
+
+        case (FnDecl (name, args, _, body) :: rest) => // Must make 2 IClosures
+
+          val idn : String = name match {
+            case IdnDef (i) => i
+          }
+
+          val argNames = new ListBuffer[String] ()
+
+          for (arg <- args) yield arg match {
+            case ParamDecl (idn, _) => argNames.append (idn match {
+              case IdnDef(i) => i
+            })
+          }
+
+          val listBody : List[Expression] = body match {
+            case Block(stmts) => (stmts)
+          }
+
+
+          val closureBody = translateToFrame (listBody).append (IPopEnv)
+
+          gen (IClosure (Some(idn), argNames.toList, closureBody))
+
+          val frame = translateToFrame (rest)
 
           gen (IClosure (None, List(idn), frame))
-
-        case (FnDecl(name, args, optRet, body), :: rest) => // Must make 2 IClosures
-          val idn : String = name match {
-            case IdnDef(i) => i
-          }
-
-          val paramList : List[String] = 
-
-          gen (IClosure (Some(idn), )
 
         case (exp :: rest) =>
           translateExp(exp)
@@ -139,8 +157,9 @@ object Translator {
         //   translateExp(right)
         //
 
-        // case PrintExp(exp) =>
-        //   gen (IPrint (exp))
+        case PrintExp(exp) =>
+        translateExp(exp)
+          gen (IPrint ())
 
         case _ => ()
 
