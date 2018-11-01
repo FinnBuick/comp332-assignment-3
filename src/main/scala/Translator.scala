@@ -76,7 +76,6 @@ object Translator {
           val idn : String = name match {
             case IdnDef (i) => i
           }
-
           val argNames = new ListBuffer[String] ()
 
           for (arg <- args) yield arg match {
@@ -88,14 +87,13 @@ object Translator {
           val listBody : List[Expression] = body match {
             case Block(stmts) => (stmts)
           }
+          val closureBody = translateToFrame (listBody)
+          
+          // Create closure implementing the function
+          gen (IClosure (Some(idn), argNames.toList, closureBody :+ IPopEnv()))
 
-
-          val closureBody = translateToFrame (listBody).append (IPopEnv)
-
-          gen (IClosure (Some(idn), argNames.toList, closureBody))
-
+          // Create closure to bind the variable
           val frame = translateToFrame (rest)
-
           gen (IClosure (None, List(idn), frame))
 
         case (exp :: rest) =>
@@ -114,6 +112,10 @@ object Translator {
 
       // FIXME Add code to translate an single expression here.
       exp match {
+
+        case Block (stmts) =>
+          translateSeq(stmts)
+          gen (IPopEnv())
 
         case PlusExp (left, right) =>
           translateExp (left)
