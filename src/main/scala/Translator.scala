@@ -88,13 +88,11 @@ object Translator {
             case Block(stmts) => (stmts)
           }
           val closureBody = translateToFrame (listBody)
-          
+
           // Create closure implementing the function
           gen (IClosure (Some(idn), argNames.toList, closureBody :+ IPopEnv()))
 
-          // Create closure to bind the variable
-          val frame = translateToFrame (rest)
-          gen (IClosure (None, List(idn), frame))
+
 
         case (exp :: rest) =>
           translateExp(exp)
@@ -148,8 +146,10 @@ object Translator {
         case BoolExp (value) =>
           gen (IBool (value))
 
-        case IdnExp (IdnUse (i)) =>
-          gen (IVar (i))
+        case IdnExp (i) =>
+          i match {
+            case IdnUse(i) => gen (IVar (i))
+          }
 
         case IntExp (i) =>
           gen (IInt (i))
