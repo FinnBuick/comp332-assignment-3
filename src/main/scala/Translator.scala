@@ -61,7 +61,6 @@ object Translator {
       list match {
 
         // FIXME Add cases to translate binding constructs `let` and `fn` here
-
         case (LetDecl (name, exp) :: rest) =>
           translateExp(exp)
           val frame = translateToFrame (rest)
@@ -73,7 +72,6 @@ object Translator {
 
 
         case (FnDecl (name, args, _, body) :: rest) => // Must make 2 IClosures
-
           val idn : String = name match {
             case IdnDef (i) => i
           }
@@ -125,6 +123,25 @@ object Translator {
           translateSeq(stmts)
           gen (IPopEnv())
 
+        case PrintExp(exp) =>
+          translateExp(exp)
+          gen (IPrint ())
+
+        case AppExp (fn, args) =>
+          args.map(translateExp(_))
+          translateExp(fn)
+          gen (ICall ())
+
+        case EqualExp (left, right) =>
+          translateExp(left)
+          translateExp(right)
+          gen (IEqual ())
+
+        case LessExp(left, right) =>
+          translateExp(left)
+          translateExp(right)
+          gen (ILess ())
+
         case PlusExp (left, right) =>
           translateExp (left)
           translateExp (right)
@@ -170,25 +187,9 @@ object Translator {
           translateExp(cond)
           gen (IBranch (leftBranch, rightBranch))
 
-
-        case AppExp (fn, args) =>
-          args.map(translateExp(_))
-          translateExp(fn)
-          gen (ICall ())
-
-        // case EqualExp (left, right) =>
-        //   val leftBranch = translateToFrame(blockToList(left))
-        //   val rightBranch = translateToFrame(blockToList(right))
-
-
-        case PrintExp(exp) =>
-        translateExp(exp)
-          gen (IPrint ())
-
         case _ => ()
 
       }
-
     }
 
     // Call sequence translator
