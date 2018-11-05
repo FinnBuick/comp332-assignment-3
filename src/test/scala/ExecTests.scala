@@ -31,6 +31,24 @@ class ExecTests extends SemanticTests {
        |print(30)""".stripMargin, "30\n")
   }
 
+  test("printing a variable gives the right output") {
+    execTestInline("""
+       |let x = 100;
+       |print x""".stripMargin, "100\n")
+  }
+
+  test("printing the result of a function gives the right output") {
+    execTestInline("""
+       |fn inc (a : int) -> int { a + 1 };
+       |print inc(10)""".stripMargin, "11\n")
+  }
+
+  test("printing a variable gives the right translation") {
+    targetTestInline("""
+       |let x = 100;
+       |print x""".stripMargin, List(IInt(100), IClosure(None, List("x"), List(IVar("x"), IPrint())), ICall()))
+  }
+
   test("print constant integer gives the right translation") {
     targetTestInline("""
        |print(30)""".stripMargin,

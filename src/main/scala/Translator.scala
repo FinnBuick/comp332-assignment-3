@@ -69,6 +69,7 @@ object Translator {
             case IdnDef (i) => i
           }
           gen (IClosure (None, List (idn), frame))
+          gen (ICall())
 
 
         case (FnDecl (name, args, _, body) :: rest) => // Must make 2 IClosures
@@ -113,20 +114,10 @@ object Translator {
     def translateExp(exp : Expression) {
 
       // FIXME Add code to translate an single expression here.
-
-      //Unwraps IdnExp nodes to get the identifier
-      def unwrapName(exp: Expression) =
-        exp match {
-        case IdnExp(e) => e match {
-          case IdnUse(i) => i
-        }
-      }
-
       def blockToList(blk : Block) =
         blk match {
           case Block(stmts) => (stmts)
         }
-
 
       exp match {
 
@@ -181,16 +172,9 @@ object Translator {
 
 
         case AppExp (fn, args) =>
-          val argList = vecToList (args)
-          val idnList = for (arg <- argList) yield unwrapName(arg)
-
-          for (idn <- idnList) {
-            gen (IVar (idn))
-          }
-
-          val fnIdn = unwrapName(fn)
-
-          gen (IVar (fnIdn))
+          args.map(translateExp(_))
+          translateExp(fn)
+          gen (ICall ())
 
         // case EqualExp (left, right) =>
         //   val leftBranch = translateToFrame(blockToList(left))
