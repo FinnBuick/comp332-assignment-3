@@ -37,4 +37,34 @@ class ExecTests extends SemanticTests {
                      List(IInt(30), IPrint()))
   }
 
+  test("printing the addition of two integers gives the right translation") {
+    targetTestInline("""
+        |print(2 + 2)""".stripMargin,
+                  List(IInt(2), IInt(2), IAdd(), IPrint()))
+  }
+
+  test("printing the subtraction of two integers gives the right translation") {
+    targetTestInline("""
+        |print(4 - 2)""".stripMargin,
+                  List(IInt(4), IInt(2), ISub(), IPrint()))
+  }
+
+  test("printing the multiplication of two integers gives the right translation") {
+    targetTestInline("""
+        |print(4 * 2)""".stripMargin,
+                  List(IInt(4), IInt(2), IMul(), IPrint()))
+  }
+
+  test("printing the division of two integers gives the right translation") {
+    targetTestInline("""
+        |print(4 / 2)""".stripMargin,
+                  List(IInt(4), IInt(2), IDiv(), IPrint()))
+  }
+
+  test("printing the negation of an integer gives the right translation") {
+    targetTestInline("""
+        |print(- 2)""".stripMargin,
+                  List(IInt(0), IInt(2), ISub(), IPrint()))
+  }
+
 }

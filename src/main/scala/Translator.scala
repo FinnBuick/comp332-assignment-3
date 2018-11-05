@@ -176,7 +176,7 @@ object Translator {
         case IfExp (cond, left, right) =>
           val leftBranch = translateToFrame(blockToList(left))
           val rightBranch = translateToFrame(blockToList(right))
-
+          translateExp(cond)
           gen (IBranch (leftBranch, rightBranch))
 
 
@@ -192,6 +192,9 @@ object Translator {
 
           gen (IVar (fnIdn))
 
+        // case EqualExp (left, right) =>
+        //   val leftBranch = translateToFrame(blockToList(left))
+        //   val rightBranch = translateToFrame(blockToList(right))
 
 
         case PrintExp(exp) =>
