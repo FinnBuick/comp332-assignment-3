@@ -90,9 +90,13 @@ object Translator {
           val closureBody = translateToFrame (listBody)
 
           // Create closure implementing the function
-          gen (IClosure (Some(idn), argNames.toList, closureBody :+ IPopEnv()))
+          gen (IClosure (Some (idn), argNames.toList, closureBody :+ IPopEnv ()))
 
+          val frameToBind = translateToFrame (rest)
 
+          gen (IClosure (None, List (idn), frameToBind :+ IPopEnv ()))
+
+          gen (ICall())
 
         case (exp :: rest) =>
           translateExp(exp)
@@ -109,6 +113,21 @@ object Translator {
     def translateExp(exp : Expression) {
 
       // FIXME Add code to translate an single expression here.
+
+      //Unwraps IdnExp nodes to get the identifier
+      def unwrapName(exp: Expression) =
+        exp match {
+        case IdnExp(e) => e match {
+          case IdnUse(i) => i
+        }
+      }
+
+      def blockToList(blk : Block) =
+        blk match {
+          case Block(stmts) => (stmts)
+        }
+
+
       exp match {
 
         case Block (stmts) =>
@@ -154,10 +173,26 @@ object Translator {
         case IntExp (i) =>
           gen (IInt (i))
 
-        // case IfExp (cond, left, right) =>
-        //   translateExp(left)
-        //   translateExp(right)
-        //
+        case IfExp (cond, left, right) =>
+          val leftBranch = translateToFrame(blockToList(left))
+          val rightBranch = translateToFrame(blockToList(right))
+
+          gen (IBranch (leftBranch, rightBranch))
+
+
+        case AppExp (fn, args) =>
+          val argList = vecToList (args)
+          val idnList = for (arg <- argList) yield unwrapName(arg)
+
+          for (idn <- idnList) {
+            gen (IVar (idn))
+          }
+
+          val fnIdn = unwrapName(fn)
+
+          gen (IVar (fnIdn))
+
+
 
         case PrintExp(exp) =>
         translateExp(exp)
