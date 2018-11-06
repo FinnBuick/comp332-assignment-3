@@ -62,7 +62,7 @@ class ExecTests extends SemanticTests {
   test("printing a variable gives the right translation") {
     targetTestInline("""
        |let x = 100;
-       |print x""".stripMargin, List(IInt(100), IClosure(None, List("x"), List(IVar("x"), IPrint())), ICall()))
+       |print x""".stripMargin, List(IInt(100), IClosure(None, List("x"), List(IVar("x"), IPrint(), IPopEnv())), ICall()))
   }
 
   test("print constant integer gives the right translation") {

@@ -67,7 +67,7 @@ object Translator {
           val idn : String = name match {
             case IdnDef (i) => i
           }
-          gen (IClosure (None, List (idn), frame))
+          gen (IClosure (None, List (idn), frame :+ IPopEnv ()))
           gen (ICall())
 
 
@@ -121,7 +121,6 @@ object Translator {
 
         case Block (stmts) =>
           translateSeq(stmts)
-          gen (IPopEnv())
 
         case PrintExp(exp) =>
           translateExp(exp)
