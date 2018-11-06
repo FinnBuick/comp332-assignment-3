@@ -26,15 +26,31 @@ class ExecTests extends SemanticTests {
 
   import SECTree._
 
+  test("printing a boolean true gives the right output") {
+    execTestInline("""
+       |print(true)""".stripMargin, "true\n")
+  }
+
+  test("printing a boolean false gives the right output") {
+    execTestInline("""
+       |print(false)""".stripMargin, "false\n")
+  }
+
   test("printing a constant integer gives the right output") {
     execTestInline("""
        |print(30)""".stripMargin, "30\n")
   }
 
-  test("printing a variable gives the right output") {
+  test("printing a integer variable gives the right output") {
     execTestInline("""
        |let x = 100;
        |print x""".stripMargin, "100\n")
+  }
+
+  test("printing a boolean variable gives the right output") {
+    execTestInline("""
+       |let x = true;
+       |print x""".stripMargin, "true\n")
   }
 
   test("printing the result of a function gives the right output") {
