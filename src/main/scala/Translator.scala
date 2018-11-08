@@ -162,12 +162,10 @@ object Translator {
           gen (IDiv ())
 
         case NegExp (exp) =>
-          gen (IInt (0))
           exp match {
-            case IntExp (value) => gen (IInt (value))
+            case IntExp (value) => gen (IInt (-value))
             case _ => ()
           }
-          gen (ISub ())
 
         case BoolExp (value) =>
           gen (IBool (value))
