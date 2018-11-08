@@ -93,8 +93,8 @@ object Translator {
 
           val frameToBind = translateToFrame (rest)
 
+          // Create closure to bind the function to the identifier
           gen (IClosure (None, List (idn), frameToBind :+ IPopEnv ()))
-
           gen (ICall())
 
         case (exp :: rest) =>
@@ -110,13 +110,6 @@ object Translator {
       * the end of the current instruction buffer.
       */
     def translateExp(exp : Expression) {
-
-      // FIXME Add code to translate an single expression here.
-      def blockToList(blk : Block) =
-        blk match {
-          case Block(stmts) => (stmts)
-        }
-
       exp match {
 
         case Block (stmts) =>
@@ -161,26 +154,21 @@ object Translator {
           translateExp (right)
           gen (IDiv ())
 
-        case NegExp (exp) =>
-          exp match {
-            case IntExp (value) => gen (IInt (-value))
-            case _ => ()
-          }
+        case NegExp (IntExp(i)) =>
+          gen (IInt (-i))
 
-        case BoolExp (value) =>
-          gen (IBool (value))
+        case BoolExp (i) =>
+          gen (IBool (i))
 
-        case IdnExp (i) =>
-          i match {
-            case IdnUse(i) => gen (IVar (i))
-          }
+        case IdnExp (IdnUse(i)) =>
+          gen (IVar (i))
 
         case IntExp (i) =>
           gen (IInt (i))
 
-        case IfExp (cond, left, right) =>
-          val leftBranch = translateToFrame(blockToList(left))
-          val rightBranch = translateToFrame(blockToList(right))
+        case IfExp (cond, Block(left), Block(right)) =>
+          val leftBranch = translateToFrame(left)
+          val rightBranch = translateToFrame(right)
           translateExp(cond)
           gen (IBranch (leftBranch, rightBranch))
 
