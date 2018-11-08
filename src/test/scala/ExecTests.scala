@@ -138,6 +138,14 @@ class ExecTests extends SemanticTests {
        |let x = (2 < 2)""".stripMargin, List(IInt(2), IInt(2), ILess(), IClosure(None, List("x"), List(IPopEnv())), ICall()))
   }
 
+  test("an if expression gives the right translation") {
+    targetTestInline("""
+       |if(2 < 4){
+       | print(true)
+       |} else {
+       | print(false)
+       |}""".stripMargin, List(IInt(2), IInt(4), ILess(), IBranch(List(IBool(true), IPrint()), List(IBool(false), IPrint()))))
+  }
 
   // Printing tests
 
@@ -181,6 +189,21 @@ class ExecTests extends SemanticTests {
     targetTestInline("""
         |print(- 2)""".stripMargin,
                   List(IInt(-2), IPrint()))
+  }
+
+  test("A function declaration and application gives the right translation") {
+    targetTestInline("""
+        |fn max(a : int, b : int) -> int {
+        | if(a < b){
+        |   b
+        | } else {
+        |   a
+        | }
+        |};
+        |print(max(2,5))""".stripMargin, List(IClosure(Some("max"),List("a", "b"),
+        List(IVar("a"), IVar("b"), ILess(), IBranch(List(IVar("b")),List(IVar("a"))),
+        IPopEnv())), IClosure(None,List("max"),List(IInt(2), IInt(5), IVar("max"),
+        ICall(), IPrint(), IPopEnv())), ICall()))
   }
 
 }
