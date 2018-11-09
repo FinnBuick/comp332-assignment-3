@@ -61,20 +61,14 @@ object Translator {
       list match {
 
         // FIXME Add cases to translate binding constructs `let` and `fn` here
-        case (LetDecl (name, exp) :: rest) =>
+        case (LetDecl (IdnDef(idn), exp) :: rest) =>
           translateExp(exp)
           val frame = translateToFrame (rest)
-          val idn : String = name match {
-            case IdnDef (i) => i
-          }
           gen (IClosure (None, List (idn), frame :+ IPopEnv ()))
           gen (ICall())
 
 
-        case (FnDecl (name, args, _, body) :: rest) => // Must make 2 IClosures
-          val idn : String = name match {
-            case IdnDef (i) => i
-          }
+        case (FnDecl (IdnDef(idn), args, _, Block(stmts)) :: rest) => // Must make 2 IClosures
           val argNames = new ListBuffer[String] ()
 
           for (arg <- args) yield arg match {
@@ -83,10 +77,7 @@ object Translator {
             })
           }
 
-          val listBody : List[Expression] = body match {
-            case Block(stmts) => (stmts)
-          }
-          val closureBody = translateToFrame (listBody)
+          val closureBody = translateToFrame (stmts)
 
           // Create closure implementing the function
           gen (IClosure (Some (idn), argNames.toList, closureBody :+ IPopEnv ()))

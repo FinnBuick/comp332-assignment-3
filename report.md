@@ -45,6 +45,21 @@ case PlusExp (left, right) =>
 
 An `IfExp` works slightly differently since it must capture entire blocks of expressions to decide on control flow. To do this we have to translate the contents of each block into a list of instructions A.K.A frames. We then have to evaluate the condition and push that onto the stack and then finally generate the `IBranch` instruction containing the frames for true and false cases.
 
-Lastly the function application expression known as `AppExp` works by translating the function arguments one after the other using Scala's inbuilt map() followed by an `ICall` instruction.
+Lastly the function application expression known as `AppExp` works by translating the function arguments one after the other using Scala's inbuilt `map()` followed by an `ICall` instruction.
 
 ### Translating Sequences of Lintilla expressions
+
+In order to translate sequence of expressions, we process them recursively by translating the first expression in the list and then recurse on the rest of the list using Scala's List tail-recursion mechanism `head :: tail` like so:
+
+```
+def translateSeq(list : List[Expression]) {
+  list match {
+      case (exp :: rest) =>
+        translateExp(exp)
+        translateSeq(rest)
+      case _ => ()
+  }
+}
+```
+
+This will work for all the expressions except for `let` and `fn`, since their scope must extend across the rest of the expressions in the sequence. To handle these expressions we must process the
