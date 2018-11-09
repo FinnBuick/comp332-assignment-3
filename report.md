@@ -62,4 +62,14 @@ def translateSeq(list : List[Expression]) {
 }
 ```
 
-This will work for all the expressions except for `let` and `fn`, since their scope must extend across the rest of the expressions in the sequence. To handle these expressions we must process the
+This will work for all the expressions except for `let` and `fn`, since we must bind them to an identifier so their scope can extend across the rest of the expressions in the sequence. To handle the `let` and `fn` expressions we must create some other cases.
+
+For the `LetDecl` case we first translate the exp on the right hand side of the `=` and push that onto the stack, this represents the initial value of the variable. Then we translate the rest of the sequence and store it in a `val` called `frame` using the `translateToFrame()`. Now we are ready to construct the closure to bind the the identifier so that it can be
+
+```
+case (LetDecl (IdnDef(idn), exp) :: rest) =>
+  translateExp(exp)
+  val frame = translateToFrame (rest)
+  gen (IClosure (None, List (idn), frame :+ IPopEnv ()))
+  gen (ICall())
+```
