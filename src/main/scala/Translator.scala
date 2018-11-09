@@ -68,19 +68,14 @@ object Translator {
           gen (ICall())
 
 
-        case (FnDecl (IdnDef(idn), args, _, Block(stmts)) :: rest) => // Must make 2 IClosures
-          val argNames = new ListBuffer[String] ()
-
-          for (arg <- args) yield arg match {
-            case ParamDecl (idn, _) => argNames.append (idn match {
-              case IdnDef(i) => i
-            })
-          }
+        case (FnDecl (IdnDef(idn), params, _, Block(stmts)) :: rest) => // Must make 2 IClosures
+          vecToList(params)
+          val argNames = params.map({ case ParamDecl(IdnDef(i),_) => i })
 
           val closureBody = translateToFrame (stmts)
 
           // Create closure implementing the function
-          gen (IClosure (Some (idn), argNames.toList, closureBody :+ IPopEnv ()))
+          gen (IClosure (Some (idn), argNames, closureBody :+ IPopEnv ()))
 
           val frameToBind = translateToFrame (rest)
 
@@ -146,7 +141,9 @@ object Translator {
           gen (IDiv ())
 
         case NegExp (IntExp(i)) =>
-          gen (IInt (-i))
+          gen (IInt (0))
+          gen (IInt (i))
+          gen (ISub ())
 
         case BoolExp (i) =>
           gen (IBool (i))

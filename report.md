@@ -64,7 +64,7 @@ def translateSeq(list : List[Expression]) {
 
 This will work for all the expressions except for `let` and `fn`, since we must bind them to an identifier so their scope can extend across the rest of the expressions in the sequence. To handle the `let` and `fn` expressions we must create some other cases.
 
-For the `LetDecl` case we first translate the exp on the right hand side of the `=` and push that onto the stack, this represents the initial value of the variable. Then we translate the rest of the sequence and store it in a `val` called `frame` using the `translateToFrame()`. Now we are ready to construct the closure to bind the identifier so that it can be used as a variable. We pass in the identifier and then the
+For the `LetDecl` case we first translate the exp on the right hand side of the `=` and push that onto the stack, this represents the initial value of the variable. Then we translate the rest of the sequence and store it in a `val` called `frame` using the `translateToFrame()`. Now we are ready to construct the closure to bind the identifier so that it can be used later on as a variable. We pass in `None` for the function name option argument since this is not a function, followed by the translated `rest` sequence in `frame` with an appended `IPopEnv`.
 
 ```
 case (LetDecl (IdnDef(idn), exp) :: rest) =>
@@ -72,4 +72,25 @@ case (LetDecl (IdnDef(idn), exp) :: rest) =>
   val frame = translateToFrame (rest)
   gen (IClosure (None, List (idn), frame :+ IPopEnv ()))
   gen (ICall())
+```
+
+For the `FnDecl` case we must push two closures onto the stack, one to implement the function and one to bind the identifier of the function to the first closure.
+
+To create the first closure we simply pass in an option containing the identifier as the first argument. Next we must convert the `Vector` of `ParamDecl` objects into a list of identifier to do this we first convert the `Vector` to a `List` using the given `vecToList()` function. Then we use a `map` to decompose each of the elements into the identifier string.
+
+```
+val argNames = params.map({ case ParamDecl(IdnDef(i),_) => i })
+```
+
+Now we can pass this list of strings into the closures second argument. Then we translate the body of the function using `translateToFrame()` and pass that frame into the closures last argument, appending an `IPopEnv` instruction to pop the referencing environment off the stack to discard it after the closure executes. We now push that closure onto the stack.
+
+```
+gen (IClosure (Some (idn), argNames, closureBody :+ IPopEnv ()))
+```
+
+For the second binding closure we simply pass in the identifier and the subsequent translated code again followed by an `IPopEnv`.
+
+```
+val frameToBind = translateToFrame (rest)
+gen (IClosure (None, List (idn), frameToBind :+ IPopEnv ()))
 ```
