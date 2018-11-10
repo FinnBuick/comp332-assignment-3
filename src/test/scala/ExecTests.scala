@@ -94,7 +94,6 @@ class ExecTests extends SemanticTests {
                   List(IInt(0), IInt(2), ISub(), IPrint()))
   }
 
-
   test("printing a variable gives the right translation") {
     targetTestInline("""
        |let x = 100;
@@ -254,6 +253,24 @@ class ExecTests extends SemanticTests {
         | }
         |};
         |print(max(2,5))""".stripMargin, "5\n")
+  }
+
+  test("a true if expression gives the right output") {
+    targetTestInline("""
+       |if(2 < 4){
+       | print(true)
+       |} else {
+       | print(false)
+       |}""".stripMargin, "true\n")
+  }
+
+  test("a false if expression gives the right output") {
+    targetTestInline("""
+       |if(4 < 2){
+       | print(true)
+       |} else {
+       | print(false)
+       |}""".stripMargin, "false\n")
   }
 
 }

@@ -103,9 +103,11 @@ Lastly we push an `ICall()` instruction which pops the closure containing the fu
 - explain goal
 - outline methodology
 
-Since it would be unreasonable to test every possible combination of translator, my main goal with testing was to ensure that each individual part of the translator was producing the correct translation. The main focus was target tree testing since it reduces ambiguity, i.e. its possible a translation could produce the correct output but the tree could be incorrect. however, execution tests were still used to verify correct execution outputs.
+Since it would be unreasonable to test every possible combination of translator, my main goal with testing was to ensure that each individual part of the translator was producing the correct translation. The main focus was target tree testing since it reduces ambiguity, i.e. its possible a translation could produce the correct output but the tree could be incorrect. However, execution tests were still used to verify correct execution outputs.
 
-Starting with target tree testing, I began by testing singular expressions like integers and Boolean values making sure to test a range of different values. Here is an example of such tests.
+Starting with target tree testing, I began by testing singular expressions like integers and Boolean values making sure to test a range of different values. The ability to print was used extensively so that the tests would get past the Semantic Analysis without error.
+
+ Here is an example of such tests.
 
 ```
 test("printing a large negative integer gives the right translation") {
@@ -115,5 +117,53 @@ test("printing a large negative integer gives the right translation") {
 }
 ```
 
+Then I moved on to translating more complex expressions like addition, subtraction, division and multiplication operations as well as equality and less than comparisons. Again using the print function to get past semantic analysis.
 
-Then I moved on to translating larger constructs such as operations like addition, subtraction, division and multiplication.
+```
+test("printing the multiplication of two integers gives the right translation") {
+  targetTestInline("""
+      |print(4 * 2)""".stripMargin,
+                List(IInt(4), IInt(2), IMul(), IPrint()))
+}
+```
+
+If expressions we're also tested to ensure the correct trees were being produced.
+
+```
+test("a true if expression gives the right translation") {
+  targetTestInline("""
+     |if(2 < 4){
+     | print(true)
+     |} else {
+     | print(false)
+     |}""".stripMargin, List(IInt(2), IInt(4), ILess(), IBranch(List(IBool(true), IPrint()), List(IBool(false), IPrint()))))
+}
+```
+
+Now that we have most of the basic expressions tested we can scale up to testing sequences with `let` and `fn` declarations. `let` declarations we're tested with a variety of values from simple integer constants to arithmetic and boolean expressions.
+
+```
+test("a less-than comparison gives the right translation") {
+  targetTestInline("""
+     |let x = (2 < 2)""".stripMargin, List(IInt(2), IInt(2), ILess(), IClosure(None, List("x"), List(IPopEnv())), ICall()))
+}
+```
+
+Lastly, function declarations we're tested to ensure they could produce the correct trees.
+
+```
+test("A function declaration and application gives the right translation") {
+  targetTestInline("""
+      |fn max(a : int, b : int) -> int {
+      | if(a < b){
+      |   b
+      | } else {
+      |   a
+      | }
+      |};
+      |print(max(2,5))""".stripMargin, List(IClosure(Some("max"),List("a", "b"),
+      List(IVar("a"), IVar("b"), ILess(), IBranch(List(IVar("b")),List(IVar("a"))),
+      IPopEnv())), IClosure(None,List("max"),List(IInt(2), IInt(5), IVar("max"),
+      ICall(), IPrint(), IPopEnv())), ICall()))
+}
+```

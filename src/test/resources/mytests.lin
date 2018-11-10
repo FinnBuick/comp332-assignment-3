@@ -1,3 +1,0 @@
-let x = true;
-fn inc (a : bool) -> bool { if (x = true) {x = false} else {x = true} };
-print inc(x)

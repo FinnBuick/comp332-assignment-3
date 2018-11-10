@@ -101,7 +101,7 @@ object Translator {
         case Block (stmts) =>
           translateSeq(stmts)
 
-        case PrintExp(exp) =>
+        case PrintExp (exp) =>
           translateExp(exp)
           gen (IPrint ())
 
