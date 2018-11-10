@@ -26,6 +26,164 @@ class ExecTests extends SemanticTests {
 
   import SECTree._
 
+  // Printing tests
+
+  test("printing an integer gives the right translation") {
+    targetTestInline("""
+       |print(30)""".stripMargin,
+                     List(IInt(30), IPrint()))
+  }
+
+  test("printing a negative integer gives the right translation") {
+    targetTestInline("""
+       |print(- 30)""".stripMargin,
+                     List(IInt(0), IInt(30), ISub(), IPrint()))
+  }
+
+  test("printing a large integer gives the right translation") {
+    targetTestInline("""
+       |print(1000000000)""".stripMargin,
+                     List(IInt(1000000000), IPrint()))
+  }
+
+  test("printing a large negative integer gives the right translation") {
+    targetTestInline("""
+       |print(-1000000000)""".stripMargin,
+                     List(IInt(0),IInt(1000000000), ISub(), IPrint()))
+  }
+
+  test("print a true boolean gives the right translation") {
+    targetTestInline("""
+       |print(true)""".stripMargin,
+                     List(IBool(true), IPrint()))
+  }
+
+  test("print a false boolean gives the right translation") {
+    targetTestInline("""
+       |print(false)""".stripMargin,
+                     List(IBool(false), IPrint()))
+  }
+
+  test("printing the addition of two integers gives the right translation") {
+    targetTestInline("""
+        |print(2 + 2)""".stripMargin,
+                  List(IInt(2), IInt(2), IAdd(), IPrint()))
+  }
+
+  test("printing the subtraction of two integers gives the right translation") {
+    targetTestInline("""
+        |print(4 - 2)""".stripMargin,
+                  List(IInt(4), IInt(2), ISub(), IPrint()))
+  }
+
+  test("printing the multiplication of two integers gives the right translation") {
+    targetTestInline("""
+        |print(4 * 2)""".stripMargin,
+                  List(IInt(4), IInt(2), IMul(), IPrint()))
+  }
+
+  test("printing the division of two integers gives the right translation") {
+    targetTestInline("""
+        |print(4 / 2)""".stripMargin,
+                  List(IInt(4), IInt(2), IDiv(), IPrint()))
+  }
+
+  test("printing the negation of an integer gives the right translation") {
+    targetTestInline("""
+        |print(- 2)""".stripMargin,
+                  List(IInt(0), IInt(2), ISub(), IPrint()))
+  }
+
+
+  test("printing a variable gives the right translation") {
+    targetTestInline("""
+       |let x = 100;
+       |print x""".stripMargin, List(IInt(100), IClosure(None, List("x"), List(IVar("x"), IPrint(), IPopEnv())), ICall()))
+  }
+
+  test("A function declaration and application gives the right translation") {
+    targetTestInline("""
+        |fn max(a : int, b : int) -> int {
+        | if(a < b){
+        |   b
+        | } else {
+        |   a
+        | }
+        |};
+        |print(max(2,5))""".stripMargin, List(IClosure(Some("max"),List("a", "b"),
+        List(IVar("a"), IVar("b"), ILess(), IBranch(List(IVar("b")),List(IVar("a"))),
+        IPopEnv())), IClosure(None,List("max"),List(IInt(2), IInt(5), IVar("max"),
+        ICall(), IPrint(), IPopEnv())), ICall()))
+  }
+
+  test("an positive integer let declaration gives the right translation") {
+    targetTestInline("""
+       |let x = 100""".stripMargin, List(IInt(100), IClosure(None, List("x"), List(IPopEnv())), ICall()))
+  }
+
+  test("an negative integer let declaration gives the right translation") {
+    targetTestInline("""
+       |let x = -100""".stripMargin, List(IInt(0), IInt(100), ISub(), IClosure(None,List("x"),List(IPopEnv())), ICall()))
+  }
+
+  test("an true boolean let declaration gives the right translation") {
+    targetTestInline("""
+       |let x = true""".stripMargin, List(IBool(true), IClosure(None, List("x"), List(IPopEnv())), ICall()))
+  }
+
+  test("an false boolean let declaration gives the right translation") {
+    targetTestInline("""
+       |let x = false""".stripMargin, List(IBool(false), IClosure(None, List("x"), List(IPopEnv())), ICall()))
+  }
+
+  test("an addition operation gives the right translation") {
+    targetTestInline("""
+       |let x = 2 + 2""".stripMargin, List(IInt(2), IInt(2), IAdd(), IClosure(None, List("x"), List(IPopEnv())), ICall()))
+  }
+
+  test("a subtraction operation gives the right translation") {
+    targetTestInline("""
+       |let x = 2 - 2""".stripMargin, List(IInt(2), IInt(2), ISub(), IClosure(None, List("x"), List(IPopEnv())), ICall()))
+  }
+
+  test("a multiplication operation gives the right translation") {
+    targetTestInline("""
+       |let x = 2 * 2""".stripMargin, List(IInt(2), IInt(2), IMul(), IClosure(None, List("x"), List(IPopEnv())), ICall()))
+  }
+
+  test("a division operation gives the right translation") {
+    targetTestInline("""
+       |let x = 2 / 2""".stripMargin, List(IInt(2), IInt(2), IDiv(), IClosure(None, List("x"), List(IPopEnv())), ICall()))
+  }
+
+  test("a equality comparison gives the right translation") {
+    targetTestInline("""
+       |let x = (2 = 2)""".stripMargin, List(IInt(2), IInt(2), IEqual(), IClosure(None, List("x"), List(IPopEnv())), ICall()))
+  }
+
+  test("a less-than comparison gives the right translation") {
+    targetTestInline("""
+       |let x = (2 < 2)""".stripMargin, List(IInt(2), IInt(2), ILess(), IClosure(None, List("x"), List(IPopEnv())), ICall()))
+  }
+
+  test("a true if expression gives the right translation") {
+    targetTestInline("""
+       |if(2 < 4){
+       | print(true)
+       |} else {
+       | print(false)
+       |}""".stripMargin, List(IInt(2), IInt(4), ILess(), IBranch(List(IBool(true), IPrint()), List(IBool(false), IPrint()))))
+  }
+
+  test("a false if expression gives the right translation") {
+    targetTestInline("""
+       |if(4 < 2){
+       | print(true)
+       |} else {
+       | print(false)
+       |}""".stripMargin, List(IInt(4), IInt(2), ILess(), IBranch(List(IBool(true), IPrint()), List(IBool(false), IPrint()))))
+  }
+
   // Execution testing
 
   test("printing a boolean true gives the right output") {
@@ -86,113 +244,8 @@ class ExecTests extends SemanticTests {
         |print(- 2)""".stripMargin, "-2\n")
   }
 
-  // Target tree testing
-
-  test("an positive integer let declaration gives the right translation") {
-    targetTestInline("""
-       |let x = 100""".stripMargin, List(IInt(100), IClosure(None, List("x"), List(IPopEnv())), ICall()))
-  }
-
-  test("an negative integer let declaration gives the right translation") {
-    targetTestInline("""
-       |let x = -100""".stripMargin, List(IInt(-100), IClosure(None, List("x"), List(IPopEnv())), ICall()))
-  }
-
-  test("an true boolean let declaration gives the right translation") {
-    targetTestInline("""
-       |let x = true""".stripMargin, List(IBool(true), IClosure(None, List("x"), List(IPopEnv())), ICall()))
-  }
-
-  test("an false boolean let declaration gives the right translation") {
-    targetTestInline("""
-       |let x = false""".stripMargin, List(IBool(false), IClosure(None, List("x"), List(IPopEnv())), ICall()))
-  }
-
-  test("an addition operation gives the right translation") {
-    targetTestInline("""
-       |let x = 2 + 2""".stripMargin, List(IInt(2), IInt(2), IAdd(), IClosure(None, List("x"), List(IPopEnv())), ICall()))
-  }
-
-  test("a subtraction operation gives the right translation") {
-    targetTestInline("""
-       |let x = 2 - 2""".stripMargin, List(IInt(2), IInt(2), ISub(), IClosure(None, List("x"), List(IPopEnv())), ICall()))
-  }
-
-  test("a multiplication operation gives the right translation") {
-    targetTestInline("""
-       |let x = 2 * 2""".stripMargin, List(IInt(2), IInt(2), IMul(), IClosure(None, List("x"), List(IPopEnv())), ICall()))
-  }
-
-  test("a division operation gives the right translation") {
-    targetTestInline("""
-       |let x = 2 / 2""".stripMargin, List(IInt(2), IInt(2), IDiv(), IClosure(None, List("x"), List(IPopEnv())), ICall()))
-  }
-
-  test("a equality comparison gives the right translation") {
-    targetTestInline("""
-       |let x = (2 = 2)""".stripMargin, List(IInt(2), IInt(2), IEqual(), IClosure(None, List("x"), List(IPopEnv())), ICall()))
-  }
-
-  test("a less-than comparison gives the right translation") {
-    targetTestInline("""
-       |let x = (2 < 2)""".stripMargin, List(IInt(2), IInt(2), ILess(), IClosure(None, List("x"), List(IPopEnv())), ICall()))
-  }
-
-  test("an if expression gives the right translation") {
-    targetTestInline("""
-       |if(2 < 4){
-       | print(true)
-       |} else {
-       | print(false)
-       |}""".stripMargin, List(IInt(2), IInt(4), ILess(), IBranch(List(IBool(true), IPrint()), List(IBool(false), IPrint()))))
-  }
-
-  // Printing tests
-
-  test("printing a variable gives the right translation") {
-    targetTestInline("""
-       |let x = 100;
-       |print x""".stripMargin, List(IInt(100), IClosure(None, List("x"), List(IVar("x"), IPrint(), IPopEnv())), ICall()))
-  }
-
-  test("print constant integer gives the right translation") {
-    targetTestInline("""
-       |print(30)""".stripMargin,
-                     List(IInt(30), IPrint()))
-  }
-
-  test("printing the addition of two integers gives the right translation") {
-    targetTestInline("""
-        |print(2 + 2)""".stripMargin,
-                  List(IInt(2), IInt(2), IAdd(), IPrint()))
-  }
-
-  test("printing the subtraction of two integers gives the right translation") {
-    targetTestInline("""
-        |print(4 - 2)""".stripMargin,
-                  List(IInt(4), IInt(2), ISub(), IPrint()))
-  }
-
-  test("printing the multiplication of two integers gives the right translation") {
-    targetTestInline("""
-        |print(4 * 2)""".stripMargin,
-                  List(IInt(4), IInt(2), IMul(), IPrint()))
-  }
-
-  test("printing the division of two integers gives the right translation") {
-    targetTestInline("""
-        |print(4 / 2)""".stripMargin,
-                  List(IInt(4), IInt(2), IDiv(), IPrint()))
-  }
-
-  test("printing the negation of an integer gives the right translation") {
-    targetTestInline("""
-        |print(- 2)""".stripMargin,
-                  List(IInt(-2), IPrint()))
-  }
-
-  test("A function declaration and application gives the right translation") {
-    targetTestInline("""
+  test("A function declaration and application gives the right output") {
+    execTestInline("""
         |fn max(a : int, b : int) -> int {
         | if(a < b){
         |   b
@@ -200,10 +253,7 @@ class ExecTests extends SemanticTests {
         |   a
         | }
         |};
-        |print(max(2,5))""".stripMargin, List(IClosure(Some("max"),List("a", "b"),
-        List(IVar("a"), IVar("b"), ILess(), IBranch(List(IVar("b")),List(IVar("a"))),
-        IPopEnv())), IClosure(None,List("max"),List(IInt(2), IInt(5), IVar("max"),
-        ICall(), IPrint(), IPopEnv())), ICall()))
+        |print(max(2,5))""".stripMargin, "5\n")
   }
 
 }

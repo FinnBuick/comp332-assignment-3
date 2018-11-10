@@ -94,3 +94,26 @@ For the second binding closure we simply pass in the identifier and the subseque
 val frameToBind = translateToFrame (rest)
 gen (IClosure (None, List (idn), frameToBind :+ IPopEnv ()))
 ```
+
+Lastly we push an `ICall()` instruction which pops the closure containing the function off the stack, followed by a closure for each of the parameters to the function.
+
+
+### Testing
+
+- explain goal
+- outline methodology
+
+Since it would be unreasonable to test every possible combination of translator, my main goal with testing was to ensure that each individual part of the translator was producing the correct translation. The main focus was target tree testing since it reduces ambiguity, i.e. its possible a translation could produce the correct output but the tree could be incorrect. however, execution tests were still used to verify correct execution outputs.
+
+Starting with target tree testing, I began by testing singular expressions like integers and Boolean values making sure to test a range of different values. Here is an example of such tests.
+
+```
+test("printing a large negative integer gives the right translation") {
+  targetTestInline("""
+     |print(-1000000000)""".stripMargin,
+                   List(IInt(0),IInt(1000000000), ISub(), IPrint()))
+}
+```
+
+
+Then I moved on to translating larger constructs such as operations like addition, subtraction, division and multiplication.
